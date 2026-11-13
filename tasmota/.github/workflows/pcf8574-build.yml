@@ -1,0 +1,42 @@
+name: Build Tasmota PCF8574
+
+on:
+  workflow_dispatch:
+    inputs:
+      variant:
+        description: Select your ESP board
+        required: true
+        type: choice
+        options:
+          - tasmota
+          - tasmota32
+          - tasmota32c3
+          - tasmota32s3
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download Tasmota source
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install PlatformIO
+        run: pip install pioarduino
+
+      - name: Prepare configuration
+        run: cp platformio_override_sample.ini platformio_override.ini
+
+      - name: Compile firmware
+        run: platformio run -e ${{ inputs.variant }}
+
+      - name: Upload firmware
+        uses: actions/upload-artifact@v4
+        with:
+          name: Tasmota-PCF8574-Firmware
+          path: build_output/
